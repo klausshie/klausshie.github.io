@@ -5,3 +5,144 @@ date: 2023-07-01
 categories: coding skills
 ---
 ## a bit of git
+
+## 我的git笔记
+
+**基本的概念**
+
+最核心的东西--有向无环图，其清晰地描述了快照之间的历史
+
+>
+>  * <-- * <-- * <-- -- -- * <-- -- * <-- -- 
+>				 ^					 |
+>				 |	
+>				  --	* <--  <---
+
+(一个最基本的模型，有分支，有合并)
+
+
+- 基本流程：
+
+当进行git commit后，git会对当前状态进行拍摄，生成snopshots，同时会生成一个独一无二的SHA-1 hashes(具有40个字符长的16位进制字符串,相当于每个状态的身份证),由神奇的哈希函数生成。 为了方便阅读，存在一个能将SHA-1 hashes映射成人类语言的references函数
+
+- git 的数据模型，有三种：tree, blob, commit
+
+tree, 一个能包含文件和文件夹的文件夹
+> type tree = map<string, tree | blob>
+
+blob, 一个文件，即一组数据
+> type blob = array<byte>
+
+commit, hard to understand，just meaningless struct?
+> type commit: struct {
+>	  parent: array<commit>
+>	  author: string
+>	  message: string
+>	  snapshot: tree
+> }
+
+
+git的对象可以是commit，也可以是tree，或者是blob
+
+type object = blob | tree | commit
+
+- git储存数据
+
+> objects = map<string, object>
+> 
+> def store(object)
+>	id = shal(object)
+>	objects[id] = object
+>
+> def load(id):
+>	return objects[id]
+
+- references 的作用
+
+> references = map<string, string>
+> 一个string代表SHA-1 hashes, 一个string代表人类语句
+
+
+**基本语法**
+
+
+- 基本操作
+
+1. git init 初始化仓库
+
+> .git 存储着管理当前目录内容所需的仓库数据
+
+2. git status 查看仓库状态
+
+3. git add 向暂存区添加文件 暂存区一般成为stage or index
+
+4. git commit 保存仓库的历史记录，存档？
+
+	git commit -m "xxx message xxx" 一句话即commit又添加了提交说明
+
+5. git log 查看提交日志
+
+	git log --pretty=short 显示最基本的信息(哈希值，用户名，邮箱)
+
+	git log < dir/file_name > 只显示指定目录，文件的日志
+
+	git log -p 显示文本前后差异
+
+	git log -p < dir/file_name > 显示该指定目录或文件的变化处
+
+	git log --all --graph --decorate
+
+6. git diff 查看当前工作树和暂存区的差别
+
+	git diff HEAD 查看当前工作树和最新提交的差别
+
+	git diff < file_name > 查看当前工作树和暂存区某文件的差别
+
+
+- 分支与合并
+
+1. git branch 列出存在的分支，同时查询当前所在分支
+
+	git branch < new branch > 创建新的分支
+
+2. git checkout < branch > 切换至另一个分支
+
+	git checkout -b < branch > 创建新分支，同时切换至新分支
+
+3. git merge < branch > 合并分支，一般是先切换至master分支，然后将< branch >与其合并
+
+	git merge --no-ff < branch >  合并分支的同时启动编辑器，录入提交信息
+
+- 更改提交操作
+
+1. git reset 回溯历史版本
+
+	git reset --hard < hash value > 让HEAD(pointer),暂存区，工作树回溯到指定状态（git log显示的日志也回到了过去， 可以用git reflog查看所有操作日志）
+
+2. git commit --amend 用于修改上一条提交的信息
+
+3. git rebase -i HEAD~2 压缩两个snopshots(包括HEAD）成一个状态
+   
+
+- 远程操作
+
+1. git clone < url > 
+
+2. git remote add < 标识符 > < url > 标识符最常见的是origin, 感觉像是为远程仓库取了个别名
+
+3. git push (-u) < 标识符 > < branch > 为某个远程仓库上传分支
+
+4. git pull (< 标识符 > < branch >)  获取最新远程仓库分支
+
+5. git branch -a 既显示本地分支又显示远程仓库的分支
+
+
+- github
+
+![the github work flow](~/Pictures/github_work.jpg)
+
+
+
+
+
+
